@@ -1,18 +1,33 @@
 name: 'action-checksec'
 description: 'cheka cheka'
 inputs:
-  file:
-    description: 'file'
-    required: true
+  executables:
+    description: 'executable files to check'
+    required: false
+  libraries:
+    description: 'library files to check'
+    required: false
+  verbose:
+    description: 'off by default, setting it to "on" prints existing flags for each binary'
+    required: false
 
 runs:
   using: "composite"
-  steps: 
-    - uses: actions/download-artifact@v2
-
-    - name: run checksec on artifact
-      run: |
-        wget -q https://github.com/slimm609/checksec.sh/archive/2.4.0.tar.gz
-        tar xzf 2.4.0.tar.gz
-        ls -la
-        checksec.sh-2.4.0/checksec --output=json --file=${{ file }}
+  steps:
+    - run: |
+        if [[ "X${OS}" == "XWindows_NT" ]]; then
+          export PATH="/c/hostedtoolcache/windows/Python/3.9.0/x64":$PATH
+          sed -i 's/python3/python/' $GITHUB_ACTION_PATH/checksec.py
+        else
+          if [[ $(python3 -c 'import sys; a=sys.version_info[0:2]; print((a) < (3,7))') == "True" ]]; then
+            export PATH="/opt/hostedtoolcache/Python/3.9.0/x64/bin:$PATH"
+          fi
+          python3 --version
+        fi
+        echo -n "${{ inputs.executables }}" | xxd
+        echo -n "${{ inputs.libraries }}" | xxd
+        echo -n "${{ inputs.executables }}" > .executables
+        echo -n "${{ inputs.libraries }}" > .libraries
+        export CHECKSEC_VERBOSE="${{ inputs.verbose }}"
+        $GITHUB_ACTION_PATH/checksec.py
+      shell: bash
