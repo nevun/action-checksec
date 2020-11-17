@@ -31,7 +31,7 @@ jobs:
           "Debug/foo.dll"
 ```
 
-`executables`, `libraries` and `print_flag_table` are optional inputs.
+`executables`, `libraries` and `verbose` are optional inputs.
 
 If you pass the GITHUB_TOKEN and GITHUB_COMMENT_URL as env variables the action will also post comments on a PR instead of just in the job log.
 
